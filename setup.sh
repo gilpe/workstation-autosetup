@@ -53,10 +53,6 @@ function main() {
         echo "Sorry but this only runs in Arch-based distros :("
         exit 1
     fi
-    if [ "$EUID" -ne 0 ]; then
-        echo "Sorry but this will need to install some things. Please, re-run it as sudo :)"
-        exit 1
-    fi
     process_args "${@}"
     if [ ! -f "$script_dir/install.sh" ]; then
         script_dir=$(mktemp -d)
