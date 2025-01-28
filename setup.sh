@@ -57,7 +57,7 @@ function main() {
     if [ ! -f "$script_dir/install.sh" ]; then
         script_dir=$(mktemp -d)
         git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$script_dir"
-        cd "$script_dir/workstation-autosetup"
+        cd "$script_dir"
     fi
     ./install.sh "$1"
 }
