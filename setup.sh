@@ -1,6 +1,14 @@
 #!/bin/bash
+#/ Usage: SCRIPTNAME [OPTIONS]...
+#/
 #/ Automatic setup script for my linux workstations (By Gilpe)
-#/ Usage: SCRIPTNAME [--help|-h] [--debug|-d]
+#/
+#/ OPTIONS
+#/   -h, --help
+#/                Print this help message
+#/   -d, --debug
+#/                Enable debug mode for extra verbose
+#/
 
 # Bash settings
 set -o errexit                                  # abort on nonzero exitstatus
@@ -9,14 +17,11 @@ set -o pipefail                                 # don't hide errors within pipes
 trap 'echo "Script failed at line $LINENO"' ERR # catch non controled exceptions
 
 # Variables
-IFS=$'\t\n' # Split on newlines and tabs (but not on spaces)
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Prints the usage message
 function print_usage() {
-    local script_dir, script_name
-    script_name=$(basename "${0}")
-    script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-    grep '^#/' "${script_dir}/${script_name}" | sed 's/^#\/\($\| \)//'
+    grep "^#/" "$script_dir/${0}" | sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
 }
 
 # Process the script arguments. Usage: process_args "${@}"
@@ -26,6 +31,9 @@ function process_args() {
         -h | --help)
             print_usage
             exit 0
+            ;;
+        -d | --debug)
+            break
             ;;
         -*)
             echo "Unknown option: ${arg}"
@@ -41,7 +49,7 @@ function process_args() {
 
 #Main program logic
 function main() {
-    if [ -f /etc/arch-release ]; then
+    if [ ! -f /etc/arch-release ]; then
         echo "Sorry but this only runs in Arch-based distros :("
         exit 1
     fi
@@ -50,9 +58,12 @@ function main() {
         exit 1
     fi
     process_args "${@}"
-    git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git
-    cd workstation-autosetup
-    sudo ./install.sh "$1"
+    if [ ! -f "$script_dir/install.sh" ]; then
+        script_dir=$(mktemp -d)
+        git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$script_dir"
+        cd "$script_dir/workstation-autosetup"
+    fi
+    ./install.sh "$1"
 }
 
 # Run
