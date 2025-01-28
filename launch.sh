@@ -13,7 +13,13 @@ if [ ! -f /etc/arch-release ]; then
 fi
 
 # Resolve git dependency
-if ! pacman -Qi "git" &>/dev/null; then
+if ! pacman -Qi gum &>/dev/null; then
+    echo "==> Installing gum dependency..."
+    sudo pacman -S gum
+fi
+
+# Resolve git dependency
+if ! pacman -Qi git &>/dev/null; then
     echo "==> Installing git dependency..."
     sudo pacman -S git
 fi
@@ -25,9 +31,9 @@ git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$script_
 cd "$script_dir"
 
 # Check setup script permissions
-if [ ! -x "$script_dir/setup.sh" ]; then
+if [ ! -x setup.sh ]; then
     echo "==> Granting execution permissions to setup.sh..."
-    chmod +x "$script_dir/setup.sh"
+    chmod +x setup.sh
 fi
 
 #launch
