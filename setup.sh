@@ -1,7 +1,7 @@
 #!/bin/bash
 #/ Usage: SCRIPTNAME [OPTIONS]...
 #/
-#/ Automatic setup script for my linux workstations (By Gilpe)
+#/ Checks and get the necesary resources for launching the setup process
 #/
 #/ OPTIONS
 #/   -h, --help
@@ -52,6 +52,7 @@ function main() {
     fi
     process_args "${@}"
     if [ ! -f "$script_dir/install.sh" ]; then
+        echo ""
         script_dir=$(mktemp -d)
         git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$script_dir"
         cd "$script_dir"
