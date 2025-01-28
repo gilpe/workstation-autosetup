@@ -40,9 +40,6 @@ function process_args() {
             print_usage
             exit 2
             ;;
-        *)
-            break
-            ;;
         esac
     done
 }
@@ -59,7 +56,7 @@ function main() {
         git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$script_dir"
         cd "$script_dir"
     fi
-    ./install.sh "$1"
+    ./install.sh
 }
 
 # Run
