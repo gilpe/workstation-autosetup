@@ -1,97 +1,110 @@
 #!/bin/bash
+#/
+#/ Usage: SCRIPTNAME [flag]
+#/
+#/ Checks and get the necesary resources for launching the setup process
+#/
+#/ Flags:
+#/   -h, --help         Print this help message
+#/   -d, --debug        Enable debug mode for extra verbose
+#/
 
-source "$(dirname "$0")/lib.sh"
+# Imports
+source lib/log.sh
 
-# Permission check
-if [ "$EUID" -ne 0 ]; then echo -e "\033[1;33m This will install things... Please re-run me as sudo :)\033[0m" && exit 1; fi
+# Bash settings
+set -o errexit  # abort on nonzero exitstatus
+set -o pipefail # don't hide errors within pipes
+set -o errtrace # ensure ERR trap is inherited
 
-# Debug mode set
-if [ "$1" = "--debug" ]; then DEBUG_MODE=true; fi
+# Signal catching
+trap 'log_e "Failed at line $LINENO."' ERR
 
-# Script dependencies installation
-if ! isInstalled gum; then
-    echo -e "\033[1;33m Gum is going to be installed to beautify this awesome script <3"
-    installGum
-fi
+# Variables
+IFS=$'\n'
+debug_mode=false
+packages=()
+packages_aur=()
 
-# Welcome title display
-echo -e "\n"
-gum style --faint --border none --align right --width 50 \
-    "Be welcome to..."
-gum style --border double --align center --width 50 --padding "1 2" --border-foreground 212 \
-    "$(
-        gum style --bold --foreground 85 \
-            "Gilpe"
-    )'s package installer and dotfile setter" "for a new workstation"
+# Functions
+display_usage() {
+    grep "^#/" "${0}" | sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
+}
 
-if $DEBUG_MODE; then gum log -s -t "timeonly" -l "debug" "Debug mode is enabled."; fi
-gum log -s -t "timeonly" -l "info" "A brief advice:"
-gum format -- "" \
-    "> This script runs incrementally and on priority." \
-    "> Each step normally requires the execution of the previous one." \
-    "> You can stop when you want and resume later." \
-    "> But a recomendation is to run it all at once." \
-    "> Enjoy the ride! 🚀"
-echo -e "\n"
+parse_args() {
+    for arg in "${@}"; do
+        case "${arg}" in
+        -h | --help)
+            display_usage
+            exit 0
+            ;;
+        -d | --debug)
+            debug_mode=true
+            break
+            ;;
+        *)
+            display_usage
+            echo "UNKNOWN FLAG: $arg. Check the usage info above."
+            exit 2
+            ;;
+        esac
+    done
+}
 
-# Menu display
-option1="Package installation"
-option2="Configuration import"
-choices=$(
-    gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
-        "$option1" \
-        "$option2"
-)
-if $DEBUG_MODE; then gum log -s -t "timeonly" -l "debug" "Selected options[ $choices ]"; fi
+updateInstalled() {
+    log_i "Updating installed packages."
+    gum spin --spinner dot --show-error --title "Running task..." \
+        -- pacman -Syu --noconfirm --needed
+}
 
-reboot=false
+isInstalled() {
+    if [ -z "$1" ]; then return 1; fi
+    pacman -Qi "$1" &>/dev/null
+}
 
-if [ -z "$choices" ]; then
-    gum log -s -t "timeonly" -l "warn" "It looks like you haven't selected anything."
-else
-    # Package installation
-    if echo "$choices" | grep -q "$option1"; then
-        gum log -s -t "timeonly" -l "info" "Starting $option1."
-        updateInstalled
-        loadPackageLists
-        installPacmanPackages "${PACKAGES[@]}"
-        installYayPackages "${PACKAGES_AUR[@]}"
-        if gum confirm --timeout "1s" "Install godot extras?"; then
-            installGodot
+isAUR() {
+    if [ -z "$1" ]; then return 1; fi
+    ! pacman -Si "$1" &>/dev/null
+}
+
+loadPackageLists() {
+    log_i "Loading package lists from file."
+    local line_count=0
+    local installed_packages=()
+    log_i "Iterating lines." "󰘍"
+    while read -r package_name || [ -n "${package_name}" ]; do
+        line_count=$((line_count + 1))
+        if isInstalled "$package_name"; then
+            log_w "$package_name excluded, it's already installed." "󰘍"
+            installed_packages+=("$package_name")
+        else
+            if isAUR "$package_name"; then
+                packages_aur+=("$package_name")
+            else
+                packages+=("$package_name")
+            fi
         fi
-        if gum confirm --timeout "1s" "Install VM extras?"; then
-            installVMUtils
-        fi
-        gum log -s -t "timeonly" -l "info" "$option1 is over!"
+    done <"packages.txt"
+    log_i "$line_count found. ${#installed_packages[@]} installed. ${#packages[@]} pending. ${#packages_aur[@]} pending(AUR)."
+    if $debug_mode; then
+        log_d "Installed pkgs [ ${installed_packages[*]/''/' '} ]."
+        log_d "Regular pkgs [ ${packages[*]/''/' ' } ]."
+        log_d "AUR pkgs [ ${packages_aur[*]/''/' ' } ]."
     fi
+}
 
-    # Configuration import
-    if echo "$choices" | grep -q "$option2"; then
+# Run program
+parse_args "${@}"
+if $debug_mode; then log_d "Script arguments: $*."; fi
 
-        gum log -s -t "timeonly" -l "info" "Starting $option2."
-        downloadDotfiles
-        if gum confirm --timeout "1s" "Overwrite all the current configuration?"; then
-            applyDotfiles
-        fi
-        if gum confirm --timeout "1s" "Change the current shell to zsh?"; then
-            changeShell
-        fi
-        if gum confirm --timeout "1s" "Reboot now?"; then
-            reboot=true
-        fi
-        gum log -s -t "timeonly" -l "info" "$option2 is over!"
-    fi
-fi
-
-# Farewell title display
-gum log -s -t "timeonly" -l "info" "The end."
-gum style --border none --align center --width 50 --padding "1 2" \
-    "See $(
-        gum style --bold --foreground 85 "you"
-    ) later 🫡"
-
-if $reboot; then
-    rebootSystem
-fi
-
-exit
+updateInstalled
+loadPackageLists
+#installPacmanPackages "${packages[@]}"
+#installYayPackages "${packages_aur[@]}"
+#if gum confirm --timeout "1s" "Install godot extras?"; then
+#    installGodot
+#fi
+#if gum confirm --timeout "1s" "Install VM extras?"; then
+#    installVMUtils
+#fi
+#gum log -s -t "timeonly" -l "info" "Package install is over!"
