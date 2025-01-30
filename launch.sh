@@ -26,9 +26,9 @@ fi
 
 # Clone the whole repo
 echo "==> Downloading the whole repo..."
-script_dir=$(mktemp -d)
-git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$script_dir"
-cd "$script_dir"
+temp_dir=$(mktemp -d)
+git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$temp_dir="
+cd "$temp_dir"
 
 # Check setup script permissions
 if [ ! -x setup.sh ]; then
@@ -38,4 +38,4 @@ fi
 
 #launch
 echo "==> Launching setup.sh..."
-./setup.sh
+sudo ./setup.sh
