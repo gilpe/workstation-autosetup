@@ -28,7 +28,7 @@ declare -rA menu_options=(
 )
 script_name=""
 
-# Display the usage message
+# Functions
 display_usage() {
     grep "^#/" "$current_dir/${0}" | sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
 }
@@ -62,9 +62,7 @@ display_welcome() {
             gum style --bold --foreground 85 \
                 "Gilpe"
         )'s package installer and dotfile setter" "for a new workstation"
-
-    if $debug_mode; then log_d "Debug mode is enabled."; fi
-    gum log -s -t "timeonly" -l "info" "A brief advice:"
+    log_i "A brief advice:"
     gum format -- "" \
         "> This script runs incrementally and on priority." \
         "> Each step normally requires the execution of the previous one." \
@@ -72,6 +70,7 @@ display_welcome() {
         "> But a recomendation is to run it all at once." \
         "> Enjoy the ride! 🚀"
     echo -e "\n"
+    if $debug_mode; then log_d "Debug mode is enabled."; fi
 }
 
 display_farewell() {
@@ -83,9 +82,14 @@ display_farewell() {
 }
 
 # Run program
+if $debug_mode; then log_d "Script arguments: $*."; fi
 parse_args "${@}"
+
 display_welcome
+
 menu_choices=$(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" "${!menu_options[@]}")
+if $debug_mode; then log_d "Menu choices: $menu_choices."; fi
+
 if [ -z "$menu_choices" ]; then
     log_w "It looks like you haven't selected anything."
 else
@@ -93,12 +97,13 @@ else
         log_i "Starting $choice sub-process..."
         script_name=${menu_options[$choice]}
         if [ ! -x "$script_name" ]; then
-            log_i "Granting execution permissions to $script_name..."
+            log_i "Granting execution permissions to $script_name."
             chmod +x "$script_name"
         fi
-        ./"$script_name"
+        sudo ./"$script_name"
         log_i "Finishing $choice sub-process..."
     done
 fi
+
 display_farewell
-exit
+#End program
