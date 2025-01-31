@@ -2,26 +2,22 @@
 #/
 #/ Usage: SCRIPTNAME [flag]
 #/
-#/ Checks and get the necesary resources for launching the setup process
+#/ Checks and obtains the resources required to start the setup processes.
 #/
 #/ Flags:
 #/   -h, --help         Print this help message
 #/   -d, --debug        Enable debug mode for extra verbose
 #/
 
-# Imports
+# SETTINGS ________________________________________________________________________________________
 source lib/log.sh
-
-# Bash settings
 set -o errexit  # abort on nonzero exitstatus
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
+trap 'logE "Failed at line $LINENO."' ERR
 
-# Signal catching
-trap 'log_e "Failed at line $LINENO."' ERR
-
-# Variables
-IFS=$'\n'
+# VARIABLES _______________________________________________________________________________________
+#IFS=$'\n'
 debug_mode=false
 declare -rA menu_options=(
     ["Package installation"]="install.sh"
@@ -30,11 +26,16 @@ declare -rA menu_options=(
 menu_choices=""
 script_name=""
 
-# Functions
+# FUNCTIONS _______________________________________________________________________________________
+
+#Prints the usage info from the first lines of this script
 display_usage() {
-    grep "^#/" "${0}" | sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
+    grep "^#/" "${0}" |
+        sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
 }
 
+#Parses user input arguments to perform the actions
+#usage: parse_args "${@}"
 parse_args() {
     for arg in "${@}"; do
         case "${arg}" in
@@ -55,6 +56,7 @@ parse_args() {
     done
 }
 
+#Prints the script welcome message
 display_welcome() {
     echo -e "\n"
     gum style --faint --italic --border none --align right --width 50 \
@@ -64,8 +66,8 @@ display_welcome() {
             gum style --bold --foreground 10 \
                 "Gilpe"
         )'s package installer and dotfile setter" "for a new workstation"
-    if $debug_mode; then log_d "Debug mode is enabled."; fi
-    log_i "A brief advice:"
+    if $debug_mode; then logD "Debug mode is enabled."; fi
+    logI "A brief advice:"
     gum format -- "" \
         "> This script runs incrementally and on priority." \
         "> Each step normally requires the execution of the previous one." \
@@ -75,35 +77,40 @@ display_welcome() {
     echo -e "\n"
 }
 
+#Prints the script farewell message
 display_farewell() {
-    log_i "The end."
+    logI "The end."
     gum style --border none --align center --width 50 --padding "1 2" \
         "See $(
             gum style --bold --foreground 10 "you"
         ) later 🫡"
 }
 
-# Run program
+# MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
 
 display_welcome
 
-menu_choices=$(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" "${!menu_options[@]}")
-if $debug_mode; then log_d "Menu choices: [$menu_choices]."; fi
-if [ -z "$menu_choices" ]; then
-    log_w "It looks like you haven't selected anything."
+menu_choices=()
+readarray -t menu_choices < <(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
+    "${!menu_options[@]}")
+
+if [ ${#menu_choices[@]} == 0 ]; then
+    logW "It looks like you haven't selected anything."
 else
+    if $debug_mode; then logD "Menu choices: [${menu_choices[*]}]."; fi
+
     for choice in "${menu_choices[@]}"; do
-        log_i "Starting $choice sub-process..."
+        logI "Starting $choice sub-process..."
         script_name=${menu_options[$choice]}
         if [ ! -x "$script_name" ]; then
-            log_i "Granting execution permissions to $script_name."
+            logI "Granting execution permissions to $script_name."
             chmod +x "$script_name"
         fi
         sudo ./"$script_name" "${@}"
-        log_i "Finishing $choice sub-process..."
+        logI "Finishing $choice sub-process..."
     done
 fi
 
 display_farewell
-#End program
+# END OF PROGRAM __________________________________________________________________________________

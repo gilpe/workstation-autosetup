@@ -2,35 +2,36 @@
 #/
 #/ Usage: SCRIPTNAME [flag]
 #/
-#/ Checks and get the necesary resources for launching the setup process
+#/ Installs the packages from the package list and its dependencies .
 #/
 #/ Flags:
 #/   -h, --help         Print this help message
 #/   -d, --debug        Enable debug mode for extra verbose
 #/
 
-# Imports
+# SETTINGS ________________________________________________________________________________________
 source lib/log.sh
-
-# Bash settings
 set -o errexit  # abort on nonzero exitstatus
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
+trap 'logE "Failed at line $LINENO."' ERR
 
-# Signal catching
-trap 'log_e "Failed at line $LINENO."' ERR
-
-# Variables
-IFS=$'\n'
+# VARIABLES _______________________________________________________________________________________
+#IFS=$'\n'
 debug_mode=false
 packages=()
 packages_aur=()
 
-# Functions
+# FUNCTIONS _______________________________________________________________________________________
+
+#Prints the usage info from the first lines of this script
 display_usage() {
-    grep "^#/" "${0}" | sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
+    grep "^#/" "${0}" |
+        sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
 }
 
+#Parses user input arguments to perform the actions
+#usage: parse_args "${@}"
 parse_args() {
     for arg in "${@}"; do
         case "${arg}" in
@@ -51,31 +52,56 @@ parse_args() {
     done
 }
 
+#Update the local packages with the latest versions in repos
 updateInstalled() {
-    log_i "Updating installed packages."
-    gum spin --spinner dot --show-error --title "Running task..." \
-        -- pacman -Syu --noconfirm --needed
+    logI "Updating installed packages."
+    if $debug_mode; then
+        gum spin --spinner dot --show-error --show-output --title "Running task..." \
+            -- pacman -Syu --noconfirm --needed
+    else
+        gum spin --spinner dot --show-error --title "Running task..." \
+            -- pacman -Syu --noconfirm --needed
+    fi
 }
 
+#Check if the package exists in the system.
+#usage: isInstalled "$package_name"
 isInstalled() {
-    if [ -z "$1" ]; then return 1; fi
+    local result=1
+    if [ -z "$1" ]; then
+        if $debug_mode; then logD "isInstalled has no params."; fi
+        return $result
+    fi
     pacman -Qi "$1" &>/dev/null
+    result=$?
+    if $debug_mode; then logD "isInstalled for [ $1 ] ended with code $result."; fi
+    return $result
 }
 
+#Check if the package doesn't exists in the Pacman repos.
+#usage: isAUR "$package_name"
 isAUR() {
-    if [ -z "$1" ]; then return 1; fi
-    ! pacman -Si "$1" &>/dev/null
+    local result=1
+    if [ -z "$1" ]; then
+        if $debug_mode; then logD "isAUR has no params."; fi
+        return $result
+    fi
+    pacman -Si "$1" &>/dev/null
+    result=$((!$?))
+    if $debug_mode; then logD "isAUR for [ $1 ] ended with code $result."; fi
+    return $result
 }
 
+#Gets and classifies the packages listed in the file
 loadPackageLists() {
-    log_i "Loading package lists from file."
+    logI "Loading package lists from file."
     local line_count=0
     local installed_packages=()
-    log_i "Iterating lines." "󰘍"
+    logI "Iterating lines." "󰘍"
     while read -r package_name || [ -n "${package_name}" ]; do
         line_count=$((line_count + 1))
         if isInstalled "$package_name"; then
-            log_w "$package_name excluded, it's already installed." "󰘍"
+            logW "$package_name excluded, it's already installed." "󰘍"
             installed_packages+=("$package_name")
         else
             if isAUR "$package_name"; then
@@ -85,17 +111,37 @@ loadPackageLists() {
             fi
         fi
     done <"packages.txt"
-    log_i "$line_count found. ${#installed_packages[@]} installed. ${#packages[@]} pending. ${#packages_aur[@]} pending(AUR)."
+    logI "$line_count found. ${#installed_packages[@]} installed. ${#packages[@]} pending. ${#packages_aur[@]} pending(AUR)."
     if $debug_mode; then
-        log_d "Installed pkgs [ ${installed_packages[*]/''/' '} ]."
-        log_d "Regular pkgs [ ${packages[*]/''/' ' } ]."
-        log_d "AUR pkgs [ ${packages_aur[*]/''/' ' } ]."
+        logD "Installed pkgs [ ${installed_packages[*]} ]."
+        logD "Regular pkgs [ ${packages[*]} ]."
+        logD "AUR pkgs [ ${packages_aur[*]} ]."
     fi
 }
 
-# Run program
+#Install packages from Pacman package manager.
+#usage: installPacmanPackages "${packages_names[@]}"
+installPacmanPackages() {
+    logI "Installing packages."
+    if $debug_mode; then
+        logD "Params [ ${*} ]." "󰘍"
+    fi
+    if [ ${#@} -eq 0 ]; then
+        gum log -s -t "timeonly" -l "warn" --prefix "󰘍" "Nothing to be installed."
+        return 1
+    fi
+    if ! gum spin --spinner dot --show-error --title "Running task..." \
+        -- pacman -S "${@}" --noconfirm --needed; then
+        gum log -s -t "timeonly" -l "error" --prefix "󰘍" "Something crashed."
+        return 1
+    fi
+    gum log -s -t "timeonly" -l "info" --prefix "󰘍" "${#@} installed successfully."
+    return 0
+}
+
+# MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
-if $debug_mode; then log_d "Script arguments: $*."; fi
+if $debug_mode; then logD "Script arguments: $*."; fi
 
 updateInstalled
 loadPackageLists
@@ -108,3 +154,5 @@ loadPackageLists
 #    installVMUtils
 #fi
 #gum log -s -t "timeonly" -l "info" "Package install is over!"
+
+# END OF PROGRAM __________________________________________________________________________________
