@@ -81,7 +81,7 @@ classify_packages() {
 
 #usage: install_from_pacman "${packages_pacman[@]}"
 install_from_pacman() {
-    local title="Install pacman packages"
+    local title="Install packages"
     local args=()
 
     log_info "Starting." "$title"
@@ -97,6 +97,59 @@ install_from_pacman() {
         -- pacman -S "${@}" --noconfirm --needed
 
     log_info "${#@} packages installed successfully."
+}
+
+#usage: build_package "$source_dir"
+build_package() {
+    local title="Build package"
+    local origin_dir
+    local args=()
+
+    log_info "Starting." "$title"
+    log_debug "Sources dir: ${*}." "$title"
+
+    origin_dir=$(
+        cd "$(dirname "$0")"
+        pwd
+    )
+    log_debug "Origin dir: $origin_dir." "$title"
+    cd "$1"
+
+    args+=('--spinner="dot"')
+    args+=('--title="Running task..."')
+    args+=('--show-error')
+    if $debug_mode; then
+        args+=('--show-output')
+    fi
+    gum spin "${args[@]}" \
+        -- makepkg -si --noconfirm
+
+    cd "$origin_dir"
+    log_info "Was done successfully." "$title"
+}
+
+#usage: install_yay
+install_yay() {
+    local title="Install yay"
+    local origin_dir
+    local temp_dir
+    local args=()
+
+    log_info "Creating temporary directory." "$title"
+    temp_dir=$(mktemp -d)
+    log_debug "Created dir: $temp_dir." "$title"
+
+    log_info "Downloading sources." "$title"
+    clone_repo https://aur.archlinux.org/yay.git "$temp_dir"
+
+    if ! exist_in_system base-devel; then
+        log_info "Installing dependencies." "$title"
+        install_from_pacman base-devel
+    fi
+
+    build_package "$temp_dir/yay"
+
+    log_info "Was done successfully." "$title"
 }
 
 # MAIN PROGRAM ____________________________________________________________________________________

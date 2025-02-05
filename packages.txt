@@ -1,4 +1,3 @@
-base-devel
 dotnet-runtime
 dotnet-sdk
 dunst

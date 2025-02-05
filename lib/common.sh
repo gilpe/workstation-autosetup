@@ -62,3 +62,23 @@ parse_args() {
 exist_in_system() {
     pacman -Qi "$1" &>/dev/null
 }
+
+#usage: clone_repo "$repo_url" "$local_path"
+clone_repo() {
+    local title="Clone repo"
+    local args=()
+
+    log_info "Starting." "$title"
+    log_debug "Repo URL: $1. Local directory: $2" "$title"
+
+    args+=('--spinner="dot"')
+    args+=('--title="Running task..."')
+    args+=('--show-error')
+    if $debug_mode; then
+        args+=('--show-output')
+    fi
+    gum spin "${args[@]}" \
+        -- git clone --depth 1 "$1" "$2"
+
+    log_info "Repo cloned successfully." "$title"
+}
