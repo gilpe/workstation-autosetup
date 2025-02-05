@@ -11,112 +11,72 @@
 
 # SETTINGS ________________________________________________________________________________________
 source lib/log.sh
+
 set -o errexit  # abort on nonzero exitstatus
+set -o nounset  # abort on unbound variable
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
+
 trap 'logE "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
-#IFS=$'\n'
 debug_mode=false
-packages=()
+packages_pacman=()
 packages_aur=()
 
 # FUNCTIONS _______________________________________________________________________________________
 
-#Prints the usage info from the first lines of this script
-display_usage() {
-    grep "^#/" "${0}" |
-        sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
-}
+#usage: update_system
+update_system() {
+    local title="Update system"
+    local args=()
 
-#Parses user input arguments to perform the actions
-#usage: parse_args "${@}"
-parse_args() {
-    for arg in "${@}"; do
-        case "${arg}" in
-        -h | --help)
-            display_usage
-            exit 0
-            ;;
-        -d | --debug)
-            debug_mode=true
-            break
-            ;;
-        *)
-            display_usage
-            echo "UNKNOWN FLAG: $arg. Check the usage info above."
-            exit 2
-            ;;
-        esac
-    done
-}
-
-#Update the local packages with the latest versions in repos
-updateInstalled() {
-    logI "Updating installed packages."
+    log_info "Syncing repos and update packages." "$title"
+    args+=('--spinner="dot"')
+    args+=('--title="Running task..."')
+    args+=('--show-error')
     if $debug_mode; then
-        gum spin --spinner dot --show-error --show-output --title "Running task..." \
-            -- pacman -Syu --noconfirm --needed
-    else
-        gum spin --spinner dot --show-error --title "Running task..." \
-            -- pacman -Syu --noconfirm --needed
+        args+=('--show-output')
     fi
+
+    gum spin "${args[@]}" \
+        -- pacman -Syu --noconfirm --needed
+
+    log_info "All up to date." "$title"
 }
 
-#Check if the package exists in the system.
-#usage: isInstalled "$package_name"
-isInstalled() {
-    local result=1
-    if [ -z "$1" ]; then
-        if $debug_mode; then logD "isInstalled has no params."; fi
-        return $result
-    fi
-    pacman -Qi "$1" &>/dev/null
-    result=$?
-    if $debug_mode; then logD "isInstalled for [ $1 ] ended with code $result."; fi
-    return $result
-}
-
-#Check if the package doesn't exists in the Pacman repos.
-#usage: isAUR "$package_name"
-isAUR() {
-    local result=1
-    if [ -z "$1" ]; then
-        if $debug_mode; then logD "isAUR has no params."; fi
-        return $result
-    fi
+#usage: exist_in_repos "$package_name"
+exist_in_repos() {
     pacman -Si "$1" &>/dev/null
-    result=$((!$?))
-    if $debug_mode; then logD "isAUR for [ $1 ] ended with code $result."; fi
-    return $result
 }
 
-#Gets and classifies the packages listed in the file
-loadPackageLists() {
-    logI "Loading package lists from file."
+#usage: classify_packages "$file_path"
+classify_packages() {
+    local title="Classify packages"
     local line_count=0
-    local installed_packages=()
-    logI "Iterating lines." "󰘍"
-    while read -r package_name || [ -n "${package_name}" ]; do
+    local installed_count=0
+    local package_names=()
+
+    log_info "Extracting file content." "$title"
+    log_debug "File path: $1." "$title"
+    mapfile -t package_names <"$1"
+
+    log_info "Iterating package list." "$title"
+    for package_name in "${package_names[@]}"; do
         line_count=$((line_count + 1))
-        if isInstalled "$package_name"; then
-            logW "$package_name excluded, it's already installed." "󰘍"
-            installed_packages+=("$package_name")
+        if exist_in_system "$package_name"; then
+            log_warn "$package_name excluded, it's already installed." "$title"
+            installed_count=$((installed_count + 1))
+        elif exist_in_repos "$package_name"; then
+            packages_pacman+=("$package_name")
+            log_debug "$package_name moved to Pacman list" "$title"
         else
-            if isAUR "$package_name"; then
-                packages_aur+=("$package_name")
-            else
-                packages+=("$package_name")
-            fi
+            packages_aur+=("$package_name")
+            log_debug "$package_name moved to AUR list." "$title"
         fi
-    done <"packages.txt"
-    logI "$line_count found. ${#installed_packages[@]} installed. ${#packages[@]} pending. ${#packages_aur[@]} pending(AUR)."
-    if $debug_mode; then
-        logD "Installed pkgs [ ${installed_packages[*]} ]."
-        logD "Regular pkgs [ ${packages[*]} ]."
-        logD "AUR pkgs [ ${packages_aur[*]} ]."
-    fi
+    done
+
+    log_info "$line_count found. $installed_count installed. ${#packages_pacman[@]} from pacman. ${#packages_aur[@]} from AUR." "$title"
 }
 
 #Install packages from Pacman package manager.
@@ -141,10 +101,12 @@ installPacmanPackages() {
 
 # MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
-if $debug_mode; then logD "Script arguments: $*."; fi
+log_debug "Script arguments: $*."
 
-updateInstalled
-loadPackageLists
+update_system
+
+readarray -t package_names <"packages.txt"
+classify_packages "${package_names[@]}"
 #installPacmanPackages "${packages[@]}"
 #installYayPackages "${packages_aur[@]}"
 #if gum confirm --timeout "1s" "Install godot extras?"; then
