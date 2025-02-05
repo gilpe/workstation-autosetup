@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Bash settings
+# SETTINGS ________________________________________________________________________________________
 set -o errexit                                  # abort on nonzero exitstatus
 set -o nounset                                  # abort on unbound variable
 set -o pipefail                                 # don't hide errors within pipes
 trap 'echo "Script failed at line $LINENO"' ERR # catch non controled exceptions
 
-# Check if Arch-Based
+# MAIN PROGRAM ____________________________________________________________________________________
 if [ ! -f /etc/arch-release ]; then
     echo "Sorry but this only runs in Arch-based distros :("
     exit 1
@@ -39,3 +39,4 @@ fi
 #launch
 echo "==> Launching setup.sh..."
 sudo ./setup.sh
+# END OF PROGRAM __________________________________________________________________________________

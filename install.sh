@@ -17,10 +17,11 @@ set -o nounset  # abort on unbound variable
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
 
-trap 'logE "Failed at line $LINENO."' ERR
+trap 'log_error "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
 debug_mode=false
+packages_names=()
 packages_pacman=()
 packages_aur=()
 
@@ -38,7 +39,6 @@ update_system() {
     if $debug_mode; then
         args+=('--show-output')
     fi
-
     gum spin "${args[@]}" \
         -- pacman -Syu --noconfirm --needed
 
@@ -79,24 +79,24 @@ classify_packages() {
     log_info "$line_count found. $installed_count installed. ${#packages_pacman[@]} from pacman. ${#packages_aur[@]} from AUR." "$title"
 }
 
-#Install packages from Pacman package manager.
-#usage: installPacmanPackages "${packages_names[@]}"
-installPacmanPackages() {
-    logI "Installing packages."
+#usage: install_from_pacman "${packages_pacman[@]}"
+install_from_pacman() {
+    local title="Install pacman packages"
+    local args=()
+
+    log_info "Starting." "$title"
+    log_debug "Packages: ${*}." "$title"
+
+    args+=('--spinner="dot"')
+    args+=('--title="Running task..."')
+    args+=('--show-error')
     if $debug_mode; then
-        logD "Params [ ${*} ]." "󰘍"
+        args+=('--show-output')
     fi
-    if [ ${#@} -eq 0 ]; then
-        gum log -s -t "timeonly" -l "warn" --prefix "󰘍" "Nothing to be installed."
-        return 1
-    fi
-    if ! gum spin --spinner dot --show-error --title "Running task..." \
-        -- pacman -S "${@}" --noconfirm --needed; then
-        gum log -s -t "timeonly" -l "error" --prefix "󰘍" "Something crashed."
-        return 1
-    fi
-    gum log -s -t "timeonly" -l "info" --prefix "󰘍" "${#@} installed successfully."
-    return 0
+    gum spin "${args[@]}" \
+        -- pacman -S "${@}" --noconfirm --needed
+
+    log_info "${#@} packages installed successfully."
 }
 
 # MAIN PROGRAM ____________________________________________________________________________________
@@ -105,9 +105,16 @@ log_debug "Script arguments: $*."
 
 update_system
 
-readarray -t package_names <"packages.txt"
-classify_packages "${package_names[@]}"
-#installPacmanPackages "${packages[@]}"
+readarray -t packages_names <"packages.txt"
+classify_packages "${packages_names[@]}"
+
+install_from_pacman "${packages_pacman[@]}"
+
+if ! exist_in_system yay; then
+    log_warn "This script uses Yay as AUR helper. Yay is going to be installed."
+    install_yay
+fi
+
 #installYayPackages "${packages_aur[@]}"
 #if gum confirm --timeout "1s" "Install godot extras?"; then
 #    installGodot

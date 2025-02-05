@@ -16,7 +16,7 @@ set -o errexit  # abort on nonzero exitstatus
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
 
-trap 'logE "Failed at line $LINENO."' ERR
+trap 'log_error "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
 declare -rA menu_options=(
