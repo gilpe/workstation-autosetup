@@ -80,5 +80,5 @@ clone_repo() {
     gum spin "${args[@]}" \
         -- git clone --depth 1 "$1" "$2"
 
-    log_info "Repo cloned successfully." "$title"
+    log_info "Was done successfully." "$title"
 }

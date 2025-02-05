@@ -79,13 +79,16 @@ classify_packages() {
     log_info "$line_count found. $installed_count installed. ${#packages_pacman[@]} from pacman. ${#packages_aur[@]} from AUR." "$title"
 }
 
-#usage: install_from_pacman "${packages_pacman[@]}"
-install_from_pacman() {
+#usage: install_packages "pacman" "${packages_names[@]}"
+#usage: install_packages "yay" "${packages_names[@]}"
+install_packages() {
     local title="Install packages"
     local args=()
+    local manager="$1"
+    shift
 
     log_info "Starting." "$title"
-    log_debug "Packages: ${*}." "$title"
+    log_debug "Manager: $manager. Packages: ${*}." "$title"
 
     args+=('--spinner="dot"')
     args+=('--title="Running task..."')
@@ -94,9 +97,9 @@ install_from_pacman() {
         args+=('--show-output')
     fi
     gum spin "${args[@]}" \
-        -- pacman -S "${@}" --noconfirm --needed
+        -- "$manager" -S "${@}" --noconfirm --needed
 
-    log_info "${#@} packages installed successfully."
+    log_info "${#@} packages installed successfully." "$title"
 }
 
 #usage: build_package "$source_dir"
@@ -161,14 +164,14 @@ update_system
 readarray -t packages_names <"packages.txt"
 classify_packages "${packages_names[@]}"
 
-install_from_pacman "${packages_pacman[@]}"
+install_packages pacman "${packages_pacman[@]}"
 
 if ! exist_in_system yay; then
     log_warn "This script uses Yay as AUR helper. Yay is going to be installed."
     install_yay
 fi
+install_packages yay "${packages_aur[@]}"
 
-#installYayPackages "${packages_aur[@]}"
 #if gum confirm --timeout "1s" "Install godot extras?"; then
 #    installGodot
 #fi
