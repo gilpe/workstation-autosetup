@@ -41,13 +41,12 @@ display_welcome() {
         )'s package installer and dotfile setter" "for a new workstation"
 
     log_debug "Debug mode is enabled."
-    log_info "A brief advice:"
+    log_warn "A brief advice:"
 
     gum format -- "" \
         "> This script runs incrementally and on priority." \
         "> Each step normally requires the execution of the previous one." \
-        "> You can stop when you want and resume later." \
-        "> But a recomendation is to run it all at once." \
+        "> A good recomendation is to run it all at once." \
         "> Enjoy the ride! 🚀"
     echo -e "\n"
 }

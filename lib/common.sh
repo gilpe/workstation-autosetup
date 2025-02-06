@@ -71,6 +71,11 @@ clone_repo() {
     log_info "Starting." "$title"
     log_debug "Repo URL: $1. Local directory: $2" "$title"
 
+    if ! exist_in_system git; then
+        log_warn "git is needed, so it is going to be installed now." "$title"
+        install_from_pacman git
+    fi
+
     args+=('--spinner="dot"')
     args+=('--title="Running task..."')
     args+=('--show-error')
