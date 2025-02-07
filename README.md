@@ -27,12 +27,12 @@ review everything carefully and follow the _crafted way_ to do your own tweaks.
 #### Yolo way:
 Open a fresh terminal and paste:
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/gilpe/workstation-autosetup/main/launch.sh)
+bash <(curl -s "https://raw.githubusercontent.com/gilpe/workstation-autosetup/main/launch.sh")
 ```
 #### Crafted way:
 Open a fresh terminal in a directory of your choice and paste:
 ```bash
-git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git
+git clone --depth 1 "https://github.com/gilpe/workstation-autosetup.git"
 ```
 Once the tweaks have been made, grant permissions and run the _setup_ script directly: 
 ```bash
