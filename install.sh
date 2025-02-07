@@ -114,7 +114,7 @@ build_package() {
 
     if ! exist_in_system base-devel; then
         log_warn "base-devel is needed, so it is going to be installed now." "$title"
-        install_from_pacman base-devel
+        install_packages pacman base-devel
     fi
 
     origin_dir=$(
@@ -184,7 +184,7 @@ install_dotnet() {
     if exist_in_system dotnet-sdk; then
         log_warn "dotnet-sdk is already installed." "$title"
     else
-        install_from_pacman dotnet-sdk
+        install_packages pacman dotnet-sdk
         add_to_path "$HOME/.dotnet/tools"
     fi
 
@@ -249,7 +249,7 @@ install_vm_utils() {
 
     log_info "Starting." "$title"
 
-    install_from_pacman virtualbox-guest-utils foot
+    install_packages pacman virtualbox-guest-utils foot
 
     log_info "Was done successfully." "$title"
 }
