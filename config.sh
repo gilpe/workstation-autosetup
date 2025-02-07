@@ -2,68 +2,104 @@
 #/
 #/ Usage: SCRIPTNAME [flag]
 #/
-#/ Checks and get the necesary resources for launching the setup process
+#/ Installs the packages from the package list, its dependencies and extras.
 #/
 #/ Flags:
 #/   -h, --help         Print this help message
 #/   -d, --debug        Enable debug mode for extra verbose
 #/
 
-# Imports
+# SETTINGS ________________________________________________________________________________________
 source lib/log.sh
 
-# Bash settings
-set -o errexit                                    # abort on nonzero exitstatus
-set -o nounset                                    # abort on unbound variable
-set -o pipefail                                   # don't hide errors within pipes
-trap 'echo "Script failed at line $LINENO: "' ERR # catch non controled exceptions
+set -o errexit  # abort on nonzero exitstatus
+set -o nounset  # abort on unbound variable
+set -o pipefail # don't hide errors within pipes
+set -o errtrace # ensure ERR trap is inherited
 
-# Variables
-IFS=$'\n'
+trap 'log_error "Failed at line $LINENO."' ERR
+
+# VARIABLES _______________________________________________________________________________________
 debug_mode=false
-current_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+dotfiles_dir="$HOME/.dotfiles"
 
-# Display the usage message
-display_usage() {
-    grep "^#/" "$current_dir/${0}" | sed "s/^#\/\($\| \)//;s/SCRIPTNAME/${0##*/}/"
+# FUNCTIONS _______________________________________________________________________________________
+
+download_dotfiles() {
+    local title="Download dotfiles"
+
+    log_info "Starting." "$title"
+
+    clone_repo https://www.github.com/gilpe/dotfiles.git "$dotfiles_dir"
+
+    log_info "Was done successfully." "$title"
 }
 
-parse_args() {
-    for arg in "${@}"; do
-        case "${arg}" in
-        -h | --help)
-            display_usage
-            exit 0
-            ;;
-        -d | --debug)
-            debug_mode=true
-            break
-            ;;
-        *)
-            display_usage
-            echo "UNKNOWN FLAG: $arg. Check the usage info above."
-            exit 2
-            ;;
-        esac
-    done
+overwrite_config() {
+    local title="Overwrite config"
+    local origin_dir
+    local args=()
+
+    log_info "Starting." "$title"
+
+    origin_dir=$(
+        cd "$(dirname "$0")"
+        pwd
+    )
+    log_debug "Origin dir: $origin_dir." "$title"
+    cd "$dotfiles_dir"
+    args+=('--spinner="dot"')
+    args+=('--title="Running task..."')
+    args+=('--show-error')
+    if $debug_mode; then
+        args+=('--show-output')
+    fi
+    gum spin "${args[@]}" \
+        -- stow */
+    cd "$origin_dir"
+
+    log_info "Was done successfully." "$title"
 }
 
-# Run program
+change_shell() {
+    local title="Change shell"
+    local shell
+    local args=()
+
+    log_info "Starting." "$title"
+
+    if ! exist_in_system zsh; then
+        log_warn "zsh is needed, so it is going to be installed now." "$title"
+        install_packages pacman zsh
+    fi
+    if ! exist_in_system oh-my-posh; then
+        log_warn "oh-my-posh is needed, so it is going to be installed now." "$title"
+        install_packages yay oh-my-posh
+    fi
+    shell=$(chsh -l | grep --max-count=1 "zsh")
+    chsh -s "$shell"
+
+    log_info "Was done successfully." "$title"
+}
+
+# MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
+log_debug "Script arguments: $*."
 
-gum log -s -t "timeonly" -l "info" "Starting $option2."
-downloadDotfiles
-if gum confirm --timeout "1s" "Overwrite all the current configuration?"; then
-    applyDotfiles
-fi
-if gum confirm --timeout "1s" "Change the current shell to zsh?"; then
-    changeShell
-fi
-if gum confirm --timeout "1s" "Reboot now?"; then
-    reboot=true
-fi
-gum log -s -t "timeonly" -l "info" "$option2 is over!"
+log_info "Configuration import script started."
 
-if $reboot; then
-    rebootSystem
+download_dotfiles
+
+if gum confirm --timeout "5s" "Overwrite all the current configuration?"; then
+    if ! exist_in_system stow; then
+        log_warn "This script uses GNU Stow to create symlinks. stow is going to be installed."
+        install_packages pacman stow
+    fi
+    overwrite_config
 fi
+if gum confirm --timeout "5s" "Change the current shell to zsh?"; then
+    change_shell
+fi
+
+log_info "Configuration import is over!"
+# END OF PROGRAM __________________________________________________________________________________
