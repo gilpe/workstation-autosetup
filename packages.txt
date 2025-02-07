@@ -1,5 +1,4 @@
 dotnet-runtime
-dotnet-sdk
 dunst
 fastfetch
 firefox
@@ -16,13 +15,11 @@ hyprpaper
 hyprshot
 neovim
 obsidian
-oh-my-posh
 pipewire
 qt5-wayland
 qt6-wayland
 rider
 slurp
-stow
 ttf-font-awesome
 ttf-jetbrains-mono-nerd
 uwsm
@@ -32,4 +29,3 @@ wofi
 xdg-desktop-portal-hyprland
 yazi
 zoxide
-zsh
