@@ -25,6 +25,7 @@ dotfiles_dir="$HOME/.dotfiles"
 
 # FUNCTIONS _______________________________________________________________________________________
 
+#usage: download_dotfiles
 download_dotfiles() {
     local title="Download dotfiles"
 
@@ -35,6 +36,7 @@ download_dotfiles() {
     log_info "Was done successfully." "$title"
 }
 
+#usage: overwrite_config
 overwrite_config() {
     local title="Overwrite config"
     local origin_dir
@@ -61,6 +63,7 @@ overwrite_config() {
     log_info "Was done successfully." "$title"
 }
 
+#usage: change_shell
 change_shell() {
     local title="Change shell"
     local shell
