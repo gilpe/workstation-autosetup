@@ -32,7 +32,7 @@ update_system() {
     local title="Update system"
     local args=()
 
-    log_info "Syncing repos and update packages." "$title"
+    log_info "Starting." "$title"
 
     args+=('--spinner="dot"')
     args+=('--title="Running task..."')
@@ -58,9 +58,10 @@ classify_packages() {
     local installed_count=0
     local package_names=()
 
-    log_info "Extracting file content." "$title"
+    log_info "Starting." "$title"
     log_debug "File path: $1." "$title"
 
+    log_info "Extracting file content." "$title"
     mapfile -t package_names <"$1"
     log_info "Iterating package list." "$title"
     for package_name in "${package_names[@]}"; do
@@ -78,29 +79,6 @@ classify_packages() {
     done
 
     log_info "$line_count found. $installed_count installed. ${#packages_pacman[@]} from pacman. ${#packages_aur[@]} from AUR." "$title"
-}
-
-#usage: install_packages "pacman" "${packages_names[@]}"
-#usage: install_packages "yay" "${packages_names[@]}"
-install_packages() {
-    local title="Install packages"
-    local args=()
-    local manager="$1"
-    shift
-
-    log_info "Starting." "$title"
-    log_debug "Manager: $manager. Packages: ${*}." "$title"
-
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
-    if $debug_mode; then
-        args+=('--show-output')
-    fi
-    gum spin "${args[@]}" \
-        -- "$manager" -S "${@}" --noconfirm --needed
-
-    log_info "${#@} packages installed successfully." "$title"
 }
 
 #usage: build_package "$source_dir"
@@ -259,6 +237,7 @@ parse_args "${@}"
 log_debug "Script arguments: $*."
 
 log_info "Package installation script started."
+
 update_system
 
 readarray -t packages_names <"packages.txt"
@@ -267,7 +246,7 @@ classify_packages "${packages_names[@]}"
 install_packages pacman "${packages_pacman[@]}"
 
 if ! exist_in_system yay; then
-    log_warn "This script uses Yay as AUR helper. Yay is going to be installed."
+    log_warn "This script uses Yay as AUR helper. yay is going to be installed."
     install_yay
 fi
 install_packages yay "${packages_aur[@]}"
@@ -282,6 +261,6 @@ fi
 if gum confirm --timeout "5s" "VMs maybe needs extra packages. Is this a VM? "; then
     install_vm_utils
 fi
-log_info "Package installation is over!"
 
+log_info "Package installation is over!"
 # END OF PROGRAM __________________________________________________________________________________

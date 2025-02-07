@@ -87,3 +87,26 @@ clone_repo() {
 
     log_info "Was done successfully." "$title"
 }
+
+#usage: install_packages "pacman" "${packages_names[@]}"
+#usage: install_packages "yay" "${packages_names[@]}"
+install_packages() {
+    local title="Install packages"
+    local args=()
+    local manager="$1"
+    shift
+
+    log_info "Starting." "$title"
+    log_debug "Manager: $manager. Packages: ${*}." "$title"
+
+    args+=('--spinner="dot"')
+    args+=('--title="Running task..."')
+    args+=('--show-error')
+    if $debug_mode; then
+        args+=('--show-output')
+    fi
+    gum spin "${args[@]}" \
+        -- "$manager" -S "${@}" --noconfirm --needed
+
+    log_info "${#@} packages installed successfully." "$title"
+}
