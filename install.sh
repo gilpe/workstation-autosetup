@@ -10,7 +10,7 @@
 #/
 
 # SETTINGS ________________________________________________________________________________________
-source lib/log.sh
+source lib/common.sh
 
 set -o errexit  # abort on nonzero exitstatus
 set -o nounset  # abort on unbound variable
