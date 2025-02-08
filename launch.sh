@@ -1,10 +1,13 @@
 #!/bin/bash
 
 # SETTINGS ________________________________________________________________________________________
-set -o errexit                                  # abort on nonzero exitstatus
-set -o nounset                                  # abort on unbound variable
-set -o pipefail                                 # don't hide errors within pipes
-trap 'echo "Script failed at line $LINENO"' ERR # catch non controled exceptions
+
+set -o errexit  # abort on nonzero exitstatus
+set -o nounset  # abort on unbound variable
+set -o pipefail # don't hide errors within pipes
+set -o errtrace # ensure ERR trap is inherited
+
+trap 'log_error "Failed at line $LINENO."' ERR
 
 # MAIN PROGRAM ____________________________________________________________________________________
 if [ ! -f /etc/arch-release ]; then
@@ -27,8 +30,10 @@ fi
 # Clone the whole repo
 echo "==> Downloading the whole repo..."
 temp_dir=$(mktemp -d)
-git clone --depth 1 https://github.com/gilpe/workstation-autosetup.git "$temp_dir="
+echo "==> Temporary directory created at $temp_dir"
+git clone --depth 1 "https://github.com/gilpe/workstation-autosetup.git" "$temp_dir"
 cd "$temp_dir"
+echo "==> Changed to directory $(pwd)"
 
 # Check setup script permissions
 if [ ! -x setup.sh ]; then
