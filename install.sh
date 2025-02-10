@@ -34,11 +34,11 @@ update_system() {
 
     log_info "Starting." "$title"
 
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner=dot")
+    args+=("--title='Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- pacman -Syu --noconfirm --needed
@@ -101,8 +101,8 @@ build_package() {
     )
     log_debug "Origin dir: $origin_dir." "$title"
     cd "$1"
-    args+=("--spinner dot")
-    args+=("--title 'Running task...'")
+    args+=("--spinner=dot")
+    args+=("--title='Running task...'")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
@@ -181,8 +181,8 @@ install_godotenv() {
         install_dotnet
     fi
 
-    args+=("--spinner dot")
-    args+=("--title 'Running task...'")
+    args+=("--spinner=dot")
+    args+=("--title='Running task...'")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
@@ -209,8 +209,8 @@ install_godot() {
     latest_version=$(godotenv godot list -r | grep --max-count=1 "stable" | sed 's/-stable//')
     log_debug "Latest version: $latest_version." "$title"
     log_info "Downloading the latest version." "$title"
-    args+=("--spinner dot")
-    args+=("--title 'Running task...'")
+    args+=("--spinner=dot")
+    args+=("--title='Running task...'")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
