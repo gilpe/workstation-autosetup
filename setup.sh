@@ -12,6 +12,7 @@
 # SETTINGS ________________________________________________________________________________________
 source lib/common.sh
 set -o errexit  # abort on nonzero exitstatus
+set -o nounset  # abort on unbound variable
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
 trap 'catch $? $LINENO' ERR
@@ -36,7 +37,6 @@ display_welcome() {
             gum style --bold --foreground 10 \
                 "Gilpe"
         )'s package installer and dotfile setter" "for a new workstation"
-    log_debug "Debug mode is enabled."
     log_warn "A brief advice:"
     gum format -- "" \
         "> This script runs incrementally and on priority." \
