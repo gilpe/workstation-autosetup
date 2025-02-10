@@ -31,6 +31,12 @@ log_debug() {
     fi
 }
 
+#usage: catch $? $LINENO
+catch() {
+  echo "Error $1 occurred on $2"
+  exit 1
+}
+
 #usage: display_usage
 display_usage() {
     grep "^#/" "${0}" |
