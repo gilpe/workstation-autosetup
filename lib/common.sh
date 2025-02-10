@@ -77,7 +77,7 @@ clone_repo() {
     fi
 
     args+=("--spinner=dot")
-    args+=("--title=\"Running task...\"")
+    args+=("--title=Running task...")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
@@ -100,7 +100,7 @@ install_packages() {
     log_debug "Manager: $manager. Packages: ${*}." "$title"
 
     args+=("--spinner=dot")
-    args+=("--title=\"Running task...\"")
+    args+=("--title=Running task...")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
