@@ -5,7 +5,7 @@ set -o errexit  # abort on nonzero exitstatus
 set -o nounset  # abort on unbound variable
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
-trap 'catch $? $LINENO' ERR
+trap 'echo "Error $? occurred on line $LINENO"' ERR
 # VARIABLES _______________________________________________________________________________________
 declare -a missing_packages=()
 
@@ -31,5 +31,5 @@ if [ ! -x setup.sh ]; then
     chmod +x setup.sh
 fi
 echo "==> Launching setup.sh..."
-./setup.sh
+./setup.sh -d
 # END OF PROGRAM __________________________________________________________________________________
