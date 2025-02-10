@@ -101,11 +101,11 @@ build_package() {
     )
     log_debug "Origin dir: $origin_dir." "$title"
     cd "$1"
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner dot")
+    args+=("--title 'Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- makepkg -si --noconfirm
@@ -181,11 +181,11 @@ install_godotenv() {
         install_dotnet
     fi
 
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner dot")
+    args+=("--title 'Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- dotnet tool install -g Chickensoft.GodotEnv
@@ -209,11 +209,11 @@ install_godot() {
     latest_version=$(godotenv godot list -r | grep --max-count=1 "stable" | sed 's/-stable//')
     log_debug "Latest version: $latest_version." "$title"
     log_info "Downloading the latest version." "$title"
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner dot")
+    args+=("--title 'Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- godotenv godot install "$latest_version"

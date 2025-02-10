@@ -50,11 +50,11 @@ overwrite_config() {
     )
     log_debug "Origin dir: $origin_dir." "$title"
     cd "$dotfiles_dir"
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner dot")
+    args+=("--title 'Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- stow */

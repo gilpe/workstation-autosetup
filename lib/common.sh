@@ -76,11 +76,11 @@ clone_repo() {
         install_from_pacman git
     fi
 
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner dot")
+    args+=("--title 'Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- git clone --depth 1 "$1" "$2"
@@ -99,11 +99,11 @@ install_packages() {
     log_info "Starting." "$title"
     log_debug "Manager: $manager. Packages: ${*}." "$title"
 
-    args+=('--spinner="dot"')
-    args+=('--title="Running task..."')
-    args+=('--show-error')
+    args+=("--spinner dot")
+    args+=("--title 'Running task...'")
+    args+=("--show-error")
     if $debug_mode; then
-        args+=('--show-output')
+        args+=("--show-output")
     fi
     gum spin "${args[@]}" \
         -- "$manager" -S "${@}" --noconfirm --needed
