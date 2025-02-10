@@ -21,7 +21,6 @@ trap 'log_err "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
 debug_mode=false
-packages_names=()
 packages_pacman=()
 packages_aur=()
 
@@ -240,8 +239,7 @@ log_info "Package installation script started."
 
 update_system
 
-readarray -t packages_names <"packages.txt"
-classify_packages "${packages_names[@]}"
+classify_packages "packages.txt"
 
 install_packages pacman "${packages_pacman[@]}"
 
