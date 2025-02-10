@@ -56,8 +56,10 @@ display_farewell() {
 }
 
 rebootSystem() {
+    local result
     log_warn "Many things may happened in the system. Maybe it's a good idea to reboot it now."
-    if gum confirm --timeout=10s --default=yes "Do you want to reboot system now?"; then
+    gum confirm --timeout=10s --default=yes "Do you want to reboot system now?"
+    if [ $? -eq 0 ] || [ $? -eq 124 ]; then
         gum spin --spinner dot --title "Rebooting..." -- sleep 3
         systemctl reboot
     fi
@@ -69,7 +71,7 @@ log_debug "Script arguments: $*."
 display_welcome
 readarray -t menu_choices < <(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
     "${!menu_options[@]}")
-if [ ${#menu_choices[@]} == 0 ]; then
+if [ ${#menu_choices[@]} -eq 0 ]; then
     log_warn "It looks like you haven't selected anything."
 else
     log_debug "Menu choices: ${menu_choices[*]}."
