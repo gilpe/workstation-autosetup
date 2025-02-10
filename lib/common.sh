@@ -90,15 +90,16 @@ clone_repo() {
     log_info "Was done successfully." "$title"
 }
 
-#usage: install_packages "pacman" "${packages_names[@]}"
-#usage: install_packages "yay" "${packages_names[@]}"
+#usage: install_packages $from_aur "${packages_names[@]}"
+#usage: install_packages false "${packages_names[@]}"
+#usage: install_packages true "${packages_names[@]}"
 install_packages() {
-    local title="Install $1 packages"
+    local title="Install packages"
     local args=()
-    local manager="$1"
+    local from_aur=$1
     shift
     log_info "Starting." "$title"
-    log_debug "Manager: $manager. Packages: ${*}." "$title"
+    log_debug "From AUR: $from_aur. Packages: ${*}." "$title"
     if [ $# -eq 0 ]; then
         log_warn "Nothing to install this time" "$title"
     else
@@ -108,9 +109,13 @@ install_packages() {
         if $debug_mode; then
             args+=("--show-output")
         fi
-        if [ "$manager" == "pacman" ]; then manager="sudo $manager"; fi
-        gum spin "${args[@]}" \
-            -- "$manager" -S "${@}" --noconfirm --needed
+        if $from_aur; then 
+            gum spin "${args[@]}" \
+                -- yay -S "${@}" --noconfirm --needed
+        else
+            gum spin "${args[@]}" \
+                -- sudo pacman -S "${@}" --noconfirm --needed
+        fi
         log_info "${#@} packages installed successfully." "$title"
     fi
 }
