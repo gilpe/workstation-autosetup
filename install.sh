@@ -130,7 +130,7 @@ install_yay() {
         log_debug "Created dir: $temp_dir." "$title"
         log_info "Downloading sources." "$title"
         clone_repo https://aur.archlinux.org/yay.git "$temp_dir"
-        build_package "$temp_dir/yay"
+        build_package "$temp_dir"
     fi
 
     log_info "Was done successfully." "$title"
