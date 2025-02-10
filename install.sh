@@ -35,7 +35,7 @@ update_system() {
     log_info "Starting." "$title"
 
     args+=("--spinner=dot")
-    args+=("--title='Running task...'")
+    args+=("--title=\"Running task...\"")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
@@ -102,7 +102,7 @@ build_package() {
     log_debug "Origin dir: $origin_dir." "$title"
     cd "$1"
     args+=("--spinner=dot")
-    args+=("--title='Running task...'")
+    args+=("--title=\"Running task...\"")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
@@ -182,7 +182,7 @@ install_godotenv() {
     fi
 
     args+=("--spinner=dot")
-    args+=("--title='Running task...'")
+    args+=("--title=\"Running task...\"")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
@@ -210,7 +210,7 @@ install_godot() {
     log_debug "Latest version: $latest_version." "$title"
     log_info "Downloading the latest version." "$title"
     args+=("--spinner=dot")
-    args+=("--title='Running task...'")
+    args+=("--title=\"Running task...\"")
     args+=("--show-error")
     if $debug_mode; then
         args+=("--show-output")
