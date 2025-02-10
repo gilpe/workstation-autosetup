@@ -87,12 +87,15 @@ clone_repo() {
 #usage: install_packages "pacman" "${packages_names[@]}"
 #usage: install_packages "yay" "${packages_names[@]}"
 install_packages() {
-    local title="Install packages"
+    local title="Install $1 packages"
     local args=()
     local manager="$1"
     shift
     log_info "Starting." "$title"
     log_debug "Manager: $manager. Packages: ${*}." "$title"
+    if [ ${#[@]} -eq 0 ]; then
+        log_warn "Nothing to install this time" "$title"
+    else
     args+=("--spinner=dot")
     args+=("--title=Running task...")
     args+=("--show-error")
@@ -102,4 +105,5 @@ install_packages() {
     gum spin "${args[@]}" \
         -- "$manager" -S "${@}" --noconfirm --needed
     log_info "${#@} packages installed successfully." "$title"
+    fi
 }
