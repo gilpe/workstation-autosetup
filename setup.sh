@@ -57,7 +57,7 @@ display_farewell() {
 
 rebootSystem() {
     log_warn "Many things may happened in the system. Maybe it's a good idea to reboot it now."
-    if gum confirm --timeout "5s" "Do you want to reboot system now?"; then
+    if gum confirm --timeout=10s --default=yes "Do you want to reboot system now?"; then
         gum spin --spinner dot --title "Rebooting..." -- sleep 3
         systemctl reboot
     fi
