@@ -33,8 +33,8 @@ log_debug() {
 
 #usage: catch $? $LINENO
 catch() {
-  echo "Error $1 occurred on $2"
-  exit 1
+  log_err "Error $1 occurred on line $2"
+  exit $1
 }
 
 #usage: display_usage
@@ -99,7 +99,7 @@ install_packages() {
     shift
     log_info "Starting." "$title"
     log_debug "Manager: $manager. Packages: ${*}." "$title"
-    if [ ${#[@]} -eq 0 ]; then
+    if [ $# -eq 0 ]; then
         log_warn "Nothing to install this time" "$title"
     else
     args+=("--spinner=dot")
