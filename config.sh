@@ -17,7 +17,7 @@ set -o nounset  # abort on unbound variable
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
 
-trap 'log_error "Failed at line $LINENO."' ERR
+trap 'log_err "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
 debug_mode=false
