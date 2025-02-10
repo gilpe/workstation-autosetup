@@ -67,15 +67,12 @@ exist_in_system() {
 clone_repo() {
     local title="Clone repo"
     local args=()
-
     log_info "Starting." "$title"
     log_debug "Repo URL: $1. Local directory: $2" "$title"
-
     if ! exist_in_system git; then
         log_warn "git is needed, so it is going to be installed now." "$title"
         install_from_pacman git
     fi
-
     args+=("--spinner=dot")
     args+=("--title=Running task...")
     args+=("--show-error")
@@ -84,7 +81,6 @@ clone_repo() {
     fi
     gum spin "${args[@]}" \
         -- git clone --depth 1 "$1" "$2"
-
     log_info "Was done successfully." "$title"
 }
 
@@ -95,10 +91,8 @@ install_packages() {
     local args=()
     local manager="$1"
     shift
-
     log_info "Starting." "$title"
     log_debug "Manager: $manager. Packages: ${*}." "$title"
-
     args+=("--spinner=dot")
     args+=("--title=Running task...")
     args+=("--show-error")
@@ -107,6 +101,5 @@ install_packages() {
     fi
     gum spin "${args[@]}" \
         -- "$manager" -S "${@}" --noconfirm --needed
-
     log_info "${#@} packages installed successfully." "$title"
 }

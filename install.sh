@@ -11,12 +11,10 @@
 
 # SETTINGS ________________________________________________________________________________________
 source lib/common.sh
-
 set -o errexit  # abort on nonzero exitstatus
 set -o nounset  # abort on unbound variable
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
-
 trap 'log_err "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
@@ -30,9 +28,7 @@ packages_aur=()
 update_system() {
     local title="Update system"
     local args=()
-
     log_info "Starting." "$title"
-
     args+=("--spinner=dot")
     args+=("--title=Running task...")
     args+=("--show-error")
@@ -41,7 +37,6 @@ update_system() {
     fi
     gum spin "${args[@]}" \
         -- pacman -Syu --noconfirm --needed
-
     log_info "All up to date." "$title"
 }
 
@@ -56,10 +51,8 @@ classify_packages() {
     local line_count=0
     local installed_count=0
     local package_names=()
-
     log_info "Starting." "$title"
     log_debug "File path: $1." "$title"
-
     log_info "Extracting file content." "$title"
     mapfile -t package_names <"$1"
     log_info "Iterating package list." "$title"
@@ -76,7 +69,6 @@ classify_packages() {
             log_debug "$package_name moved to AUR list." "$title"
         fi
     done
-
     log_info "$line_count found. $installed_count installed. ${#packages_pacman[@]} from pacman. ${#packages_aur[@]} from AUR." "$title"
 }
 
@@ -85,15 +77,12 @@ build_package() {
     local title="Build package"
     local origin_dir
     local args=()
-
     log_info "Starting." "$title"
     log_debug "Sources dir: ${*}." "$title"
-
     if ! exist_in_system base-devel; then
         log_warn "base-devel is needed, so it is going to be installed now." "$title"
         install_packages pacman base-devel
     fi
-
     origin_dir=$(
         cd "$(dirname "$0")"
         pwd
@@ -109,7 +98,6 @@ build_package() {
     gum spin "${args[@]}" \
         -- makepkg -si --noconfirm
     cd "$origin_dir"
-
     log_info "Was done successfully." "$title"
 }
 
@@ -119,9 +107,7 @@ install_yay() {
     local origin_dir
     local temp_dir
     local args=()
-
     log_info "Starting." "$title"
-
     if exist_in_system yay-sdk; then
         log_warn "yay is already installed." "$title"
     else
@@ -132,39 +118,32 @@ install_yay() {
         clone_repo https://aur.archlinux.org/yay.git "$temp_dir"
         build_package "$temp_dir"
     fi
-
     log_info "Was done successfully." "$title"
 }
 
 #usage: add_to_path "$path"
 add_to_path() {
     local title="Add to Path"
-
     log_info "Starting." "$title"
     log_debug "Path to add: $1." "$title"
-
     if ! [[ ":$PATH:" != *":$1:"* ]]; then
         log_warn "Nothing to do. Path is already added." "$title"
         return 0
     fi
     PATH="${PATH:+"$PATH:"}$1"
-
     log_info "Was done successfully." "$title"
 }
 
 #usage: install_dotnet
 install_dotnet() {
     local title="Install dotnet"
-
     log_info "Starting." "$title"
-
     if exist_in_system dotnet-sdk; then
         log_warn "dotnet-sdk is already installed." "$title"
     else
         install_packages pacman dotnet-sdk
         add_to_path "$HOME/.dotnet/tools"
     fi
-
     log_info "Was done successfully." "$title"
 }
 
@@ -172,14 +151,11 @@ install_dotnet() {
 install_godotenv() {
     local title="Install GodotEnv"
     local args=()
-
     log_info "Starting." "$title"
-
     if ! exist_in_system dotnet-sdk; then
         log_warn "dotnet-sdk is needed, so it is going to be installed now." "$title"
         install_dotnet
     fi
-
     args+=("--spinner=dot")
     args+=("--title=Running task...")
     args+=("--show-error")
@@ -188,7 +164,6 @@ install_godotenv() {
     fi
     gum spin "${args[@]}" \
         -- dotnet tool install -g Chickensoft.GodotEnv
-
     log_info "Was done successfully." "$title"
 }
 
@@ -197,9 +172,7 @@ install_godot() {
     local title="Install Godot"
     local latest_version
     local args=()
-
     log_info "Starting." "$title"
-
     if ! dotnet tool list -g Chickensoft.GodotEnv &>/dev/null; then
         log_warn "godotenv is needed so it is going to be installed now." "$title"
         install_godotenv
@@ -216,39 +189,29 @@ install_godot() {
     fi
     gum spin "${args[@]}" \
         -- godotenv godot install "$latest_version"
-
     log_info "Was done successfully." "$title"
 }
 
 #usage: install_vm_utils
 install_vm_utils() {
     local title="Install VM Utils"
-
     log_info "Starting." "$title"
-
     install_packages pacman virtualbox-guest-utils foot
-
     log_info "Was done successfully." "$title"
 }
 
 # MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
 log_debug "Script arguments: $*."
-
 log_info "Package installation script started."
-
 update_system
-
 classify_packages "packages.txt"
-
 install_packages pacman "${packages_pacman[@]}"
-
 if ! exist_in_system yay; then
     log_warn "This script uses Yay as AUR helper. yay is going to be installed."
     install_yay
 fi
 install_packages yay "${packages_aur[@]}"
-
 log_warn "Ahead comes some additional steps to install optional extras. \
     Please make your choice o wait for default (Yes)."
 if gum confirm --timeout "5s" "Do you want to install Godot extras?"; then
@@ -259,6 +222,5 @@ fi
 if gum confirm --timeout "5s" "VMs maybe needs extra packages. Is this a VM? "; then
     install_vm_utils
 fi
-
 log_info "Package installation is over!"
 # END OF PROGRAM __________________________________________________________________________________

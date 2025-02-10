@@ -11,11 +11,9 @@
 
 # SETTINGS ________________________________________________________________________________________
 source lib/common.sh
-
 set -o errexit  # abort on nonzero exitstatus
 set -o pipefail # don't hide errors within pipes
 set -o errtrace # ensure ERR trap is inherited
-
 trap 'log_err "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
@@ -30,7 +28,6 @@ script_name=""
 
 #usage: display_welcome
 display_welcome() {
-
     echo -e "\n"
     gum style --faint --italic --border none --align right --width 50 \
         "Be welcome to..."
@@ -39,10 +36,8 @@ display_welcome() {
             gum style --bold --foreground 10 \
                 "Gilpe"
         )'s package installer and dotfile setter" "for a new workstation"
-
     log_debug "Debug mode is enabled."
     log_warn "A brief advice:"
-
     gum format -- "" \
         "> This script runs incrementally and on priority." \
         "> Each step normally requires the execution of the previous one." \
@@ -71,9 +66,7 @@ rebootSystem() {
 # MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
 log_debug "Script arguments: $*."
-
 display_welcome
-
 menu_choices=()
 readarray -t menu_choices < <(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
     "${!menu_options[@]}")
@@ -92,7 +85,6 @@ else
         log_info "Finishing $choice sub-process..."
     done
 fi
-
 display_farewell
 rebootSystem
 # END OF PROGRAM __________________________________________________________________________________
