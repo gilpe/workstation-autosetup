@@ -19,8 +19,8 @@ trap 'log_err "Failed at line $LINENO."' ERR
 
 # VARIABLES _______________________________________________________________________________________
 debug_mode=false
-packages_pacman=()
-packages_aur=()
+declare -a packages_pacman=()
+declare -a packages_aur=()
 
 # FUNCTIONS _______________________________________________________________________________________
 

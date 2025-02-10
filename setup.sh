@@ -21,7 +21,7 @@ declare -rA menu_options=(
     ["Package installation"]="install.sh"
     ["Configuration import"]="config.sh"
 )
-menu_choices=""
+declare -a menu_choices=()
 script_name=""
 
 # FUNCTIONS _______________________________________________________________________________________
@@ -67,7 +67,6 @@ rebootSystem() {
 parse_args "${@}"
 log_debug "Script arguments: $*."
 display_welcome
-menu_choices=()
 readarray -t menu_choices < <(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
     "${!menu_options[@]}")
 if [ ${#menu_choices[@]} == 0 ]; then
