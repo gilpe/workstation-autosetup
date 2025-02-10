@@ -214,14 +214,12 @@ fi
 install_packages yay "${packages_aur[@]}"
 log_warn "Ahead comes some additional steps to install optional extras. \
     Please make your choice o wait for default (Yes)."
-gum confirm --timeout=10s --default=yes "Do you want to install Godot extras?"
-if [ $? -eq 0 ] || [ $? -eq 124 ]; then
+if gum confirm --timeout=10s --default=true "Do you want to install Godot extras?"; then
     install_dotnet
     install_godotenv
     install_godot
 fi
-gum confirm --timeout=10s --default=yes "VMs may need extra packages. Is this a VM? "
-if [ $? -eq 0 ] || [ $? -eq 124 ]; then
+if gum confirm --timeout=10s --default=true "VMs may need extra packages. Is this a VM? "; then
     install_vm_utils
 fi
 log_info "Package installation is over!"
