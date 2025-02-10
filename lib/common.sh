@@ -108,7 +108,7 @@ install_packages() {
         if $debug_mode; then
             args+=("--show-output")
         fi
-        if [ "$manager" == "pacman" ]; then $manager="sudo $manager"; fi
+        if [ "$manager" == "pacman" ]; then manager="sudo $manager"; fi
         gum spin "${args[@]}" \
             -- "$manager" -S "${@}" --noconfirm --needed
         log_info "${#@} packages installed successfully." "$title"
