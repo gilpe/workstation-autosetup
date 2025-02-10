@@ -36,7 +36,7 @@ update_system() {
         args+=("--show-output")
     fi
     gum spin "${args[@]}" \
-        -- pacman -Syu --noconfirm --needed
+        -- sudo pacman -Syu --noconfirm --needed
     log_info "All up to date." "$title"
 }
 

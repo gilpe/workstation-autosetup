@@ -102,14 +102,15 @@ install_packages() {
     if [ $# -eq 0 ]; then
         log_warn "Nothing to install this time" "$title"
     else
-    args+=("--spinner=dot")
-    args+=("--title=Running task...")
-    args+=("--show-error")
-    if $debug_mode; then
-        args+=("--show-output")
-    fi
-    gum spin "${args[@]}" \
-        -- "$manager" -S "${@}" --noconfirm --needed
-    log_info "${#@} packages installed successfully." "$title"
+        args+=("--spinner=dot")
+        args+=("--title=Running task...")
+        args+=("--show-error")
+        if $debug_mode; then
+            args+=("--show-output")
+        fi
+        if [ "$manager" == "pacman" ]; then $manager="sudo $manager"; fi
+        gum spin "${args[@]}" \
+            -- "$manager" -S "${@}" --noconfirm --needed
+        log_info "${#@} packages installed successfully." "$title"
     fi
 }

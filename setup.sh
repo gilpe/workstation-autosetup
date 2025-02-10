@@ -80,7 +80,7 @@ else
             log_info "Granting execution permissions to $script_name."
             chmod +x "$script_name"
         fi
-        sudo ./"$script_name" "${@}"
+        ./"$script_name" "${@}"
         log_info "Finishing $choice sub-process..."
     done
 fi
