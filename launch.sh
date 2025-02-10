@@ -31,5 +31,5 @@ if [ ! -x setup.sh ]; then
     chmod +x setup.sh
 fi
 echo "==> Launching setup.sh..."
-sudo ./setup.sh
+./setup.sh
 # END OF PROGRAM __________________________________________________________________________________
