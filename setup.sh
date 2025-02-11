@@ -56,7 +56,6 @@ display_farewell() {
 }
 
 rebootSystem() {
-    local result
     log_warn "Many things may happened in the system. Maybe it's a good idea to reboot it now."
     if gum confirm "Do you want to reboot system now?"; then
         gum spin --spinner dot --title "Rebooting..." -- sleep 3

@@ -17,19 +17,19 @@ fi
 if ! pacman -Qi gum &>/dev/null; then missing_packages+=("gum"); fi
 if ! pacman -Qi git &>/dev/null; then missing_packages+=("git"); fi
 if [ ${#missing_packages[@]} -gt 0 ]; then
-    echo "==> Installing git dependencies..."
-    sudo pacman -S "$missing_packages[@]"
+    echo "==> Installing git dependencies."
+    sudo pacman -S "${missing_packages[@]}"
 fi
-echo "==> Downloading the whole repo..."
+echo "==> Downloading the whole repo."
 temp_dir=$(mktemp -d)
 echo "==> Temporary directory created at $temp_dir"
 git clone --depth 1 "https://github.com/gilpe/workstation-autosetup.git" "$temp_dir"
 cd "$temp_dir"
 echo "==> Changed to directory $(pwd)"
 if [ ! -x setup.sh ]; then
-    echo "==> Granting execution permissions to setup.sh..."
+    echo "==> Granting execution permissions to setup.sh."
     chmod +x setup.sh
 fi
-echo "==> Launching setup.sh..."
+echo "==> Launching setup.sh."
 ./setup.sh -d
 # END OF PROGRAM __________________________________________________________________________________
