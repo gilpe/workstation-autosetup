@@ -23,7 +23,7 @@ declare -rA menu_options=(
     ["Configuration import"]="config.sh"
 )
 declare -a menu_choices=()
-script_name=""
+reboot=false
 
 # FUNCTIONS _______________________________________________________________________________________
 
@@ -55,35 +55,49 @@ display_farewell() {
         ) later 🫡"
 }
 
-rebootSystem() {
-    log_warn "Many things may happened in the system. Maybe it's a good idea to reboot it now."
-    if gum confirm "Do you want to reboot system now?"; then
-        gum spin --spinner dot --title "Rebooting..." -- sleep 3
-        systemctl reboot
+#usage: readarray -t menu_choices < <(get_menu_choices)
+get_menu_choices() {
+    for choice in $(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
+        "${!menu_options[@]}"); do
+        if [ -n "$choice" ]; then menu_choices+=("$choice"); fi
+    done
+    if [ ${#menu_choices[@]} -gt 0 ]; then
+        log_debug "Selected choices: ${menu_choices[*]}."
+        echo "${menu_choices[*]}."
     fi
+}
+
+#usage: execute_option "$option_name"
+execute_option() {
+    local option=$1
+    local script_name
+    log_info "Starting $option sub-process..."
+    script_name=${menu_options[$option]}
+    if [ ! -x "$script_name" ]; then
+        log_info "Granting execution permissions to $script_name."
+        chmod +x "$script_name"
+    fi
+    ./"$script_name" "${@}"
+    log_info "Finishing $option sub-process..."
 }
 
 # MAIN PROGRAM ____________________________________________________________________________________
 parse_args "${@}"
-log_debug "Script arguments: $*."
 display_welcome
-readarray -t menu_choices < <(gum choose --cursor "👉 " --no-limit --header "Pick at least one process to be done:" \
-    "${!menu_options[@]}")
+log_debug "Script arguments: $*."
+readarray -t menu_choices < <(get_menu_choices)
 if [ ${#menu_choices[@]} -eq 0 ]; then
     log_warn "It looks like you haven't selected anything."
 else
-    log_debug "Menu choices: ${menu_choices[*]}."
     for choice in "${menu_choices[@]}"; do
-        log_info "Starting $choice sub-process..."
-        script_name=${menu_options[$choice]}
-        if [ ! -x "$script_name" ]; then
-            log_info "Granting execution permissions to $script_name."
-            chmod +x "$script_name"
-        fi
-        ./"$script_name" "${@}"
-        log_info "Finishing $choice sub-process..."
+        process_choice "$choice"
     done
+    log_warn "Many things may have happened in the system. Maybe it's a good idea to reboot it now."
+    reboot=$(gum confirm "Do you want to reboot system now?")
 fi
 display_farewell
-rebootSystem
+if $reboot; then
+    gum spin --spinner dot --title "Rebooting..." -- sleep 3
+    sudo systemctl reboot
+fi
 # END OF PROGRAM __________________________________________________________________________________
